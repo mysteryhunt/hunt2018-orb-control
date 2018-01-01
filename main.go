@@ -198,5 +198,8 @@ func main() {
 	mux := goji.NewMux()
 	mux.HandleFunc(pat.Get("/ws/:device"), cnc.HandleWebsocket)
 	mux.HandleFunc(pat.New("/sequence"), cnc.HandleSequence)
+	mux.HandleFunc(pat.Get("/healthz"), func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("ok\n"))
+	})
 	http.ListenAndServe(":8080", mux)
 }
