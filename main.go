@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -196,6 +197,27 @@ func main() {
 	}
 
 	mux := goji.NewMux()
+	mux.Use(func(h http.Handler) http.Handler {
+		if os.Getenv("HUNT_REDIRECT_HTTP") == "" {
+			return h
+		}
+
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/healthz" {
+				h.ServeHTTP(w, r)
+				return
+			}
+
+			if r.Header.Get("X-Forwarded-Proto") == "https" {
+				h.ServeHTTP(w, r)
+				return
+			}
+
+			url := r.URL
+			url.Scheme = "https"
+			http.Redirect(w, r, url.String(), http.StatusPermanentRedirect)
+		})
+	})
 	mux.HandleFunc(pat.Get("/ws/:device"), cnc.HandleWebsocket)
 	mux.HandleFunc(pat.New("/sequence"), cnc.HandleSequence)
 	mux.HandleFunc(pat.Get("/healthz"), func(w http.ResponseWriter, r *http.Request) {
