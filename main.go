@@ -135,6 +135,9 @@ type sequenceElem struct {
 // (These aren't the greatest separators, but it keeps the protocol
 // simple and concise.)
 //
+// Ex (GET): curl -i http://127.0.0.1:8080/sequence?sequence=a.SolidRed.2s,b.SolidGreen.1s500ms
+// EX (POST): curl -i -X POST http://127.0.0.1:8080/sequence -d "sequence=a.SolidRed.2s,b.SolidGreen.1s500ms"
+//
 // It returns a 200 if all commands were successfully sent to all
 // connected devices, and a 500 otherwise.
 func (cnc *CommandAndControl) HandleSequence(w http.ResponseWriter, r *http.Request) {
@@ -179,11 +182,11 @@ func (cnc *CommandAndControl) HandleSequence(w http.ResponseWriter, r *http.Requ
 
 	if err != nil {
 		w.WriteHeader(500)
-		w.Write([]byte("error"))
+		w.Write([]byte("error\n"))
 		return
 	}
 
-	w.Write([]byte("ok"))
+	w.Write([]byte("ok\n"))
 }
 
 func main() {
